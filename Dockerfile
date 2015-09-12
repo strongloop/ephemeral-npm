@@ -11,6 +11,7 @@ RUN adduser \
     sinopia
 
 USER sinopia
+ENV HOME=/var/lib/sinopia
 
 WORKDIR /var/lib/sinopia
 ADD sinopia.sh /var/lib/sinopia/run.sh
