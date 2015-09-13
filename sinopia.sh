@@ -21,6 +21,11 @@ logs:
   - {type: stdout, format: pretty, level: info}
 EOYML
 
-echo "${NPM_USER:-admin}:{PLAIN}${NPM_PASSWORD:-admin}" > ./htpasswd
+if [[ -n "$NPM_SECRET" ]]; then
+  echo "secret: $SECRET" >> config.yml
+fi
+if [[ -n "$NPM_USER" -a -n "$NPM_PASSWORD" ]]; then
+  echo "$NPM_USER:{PLAIN}$NPM_PASSWORD" >> ./htpasswd
+fi
 
 exec ./node_modules/.bin/sinopia --config ./config.yml
