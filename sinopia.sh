@@ -22,7 +22,7 @@ logs:
 EOYML
 
 if [ -n "$NPM_SECRET" ]; then
-  echo "secret: $SECRET" >> config.yml
+  echo "secret: $NPM_SECRET" >> config.yml
 fi
 if [ -n "$NPM_USER" -a -n "$NPM_PASSWORD" ]; then
   echo "$NPM_USER:{PLAIN}$NPM_PASSWORD" >> ./htpasswd
