@@ -14,11 +14,12 @@ USER sinopia
 ENV HOME=/var/lib/sinopia
 
 WORKDIR /var/lib/sinopia
-ADD sinopia.sh /var/lib/sinopia/run.sh
 
 RUN npm install --loglevel=warn --no-spin sinopia && \
     npm --no-spin --loglevel=warn cache clean && \
     rm -rf ~/.node-gyp
+
+COPY sinopia.sh /var/lib/sinopia/run.sh
 
 EXPOSE 4873
 
