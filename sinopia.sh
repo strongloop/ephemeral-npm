@@ -13,6 +13,7 @@ auth:
 uplinks:
   upstream:
     url: $(npm config get registry)
+    maxage: ${MAXAGE:-5m}
 packages:
   '*':
     access: \$all
