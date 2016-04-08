@@ -5,7 +5,7 @@ cat > ./config.yml <<EOYML
 storage: ./storage
 listen:
   - 0.0.0.0:4873
-max_body_size: 200mb
+max_body_size: ${MAX_BODY_SIZE=-100mb}
 auth:
   htpasswd:
     file: ./htpasswd
