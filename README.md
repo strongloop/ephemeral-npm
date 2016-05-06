@@ -8,4 +8,4 @@ other npm modules.
 
     docker run -d -P -e npm_config_registry=$(npm config get registry) strongloop/ephemeral-npm
 
-&copy; 2015 StrongLoop, Inc.
+Copyright &copy; IBM Corp. 2015,2016. All Rights Reserved.
