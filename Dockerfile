@@ -42,6 +42,7 @@ RUN apk add --no-cache \
     && cd .. \
     && rm -Rf "node-v$NODE_VERSION" \
     && rm "node-v$NODE_VERSION.tar.gz" SHASUMS256.txt.asc SHASUMS256.txt \
+    && npm install --no-spin -g npm \
     && npm install --no-spin -g sinopia \
     && npm uninstall --no-spin -g npm \
     && apk del .build-deps \
