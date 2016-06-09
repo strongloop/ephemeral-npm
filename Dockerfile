@@ -1,7 +1,6 @@
 FROM alpine:3.4
 MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
-ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 4.4.5
 
 RUN apk add --no-cache \
@@ -46,7 +45,7 @@ RUN apk add --no-cache \
     && npm install --no-spin -g sinopia \
     && npm uninstall --no-spin -g npm \
     && apk del .build-deps \
-    && rm -rf ~/.npm* /tmp/npm* /usr/local/lib/node_modules/npm ~/.node* /var/cache/apk/* /usr/local/include/node \
+    && rm -rf ~/.npm* ~/.gnupg /tmp/npm* /usr/local/lib/node_modules/npm ~/.node* /var/cache/apk/* /usr/local/include/node \
     && adduser -S -h /var/lib/sinopia sinopia
 
 # Run as unprivileged, even under docker
