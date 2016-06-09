@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-#cat <<EOYML
 cat > ./config.yml <<EOYML
 storage: ./storage
 listen:
@@ -12,7 +11,7 @@ auth:
     max_users: ${MAX_USERS:-1}
 uplinks:
   upstream:
-    url: $(npm config get registry)
+    url: ${npm_config_registry:-https://registry.npmjs.org/}
     maxage: ${MAXAGE:-5m}
     timeout: ${TIMEOUT:-45s}
 packages:
@@ -28,7 +27,7 @@ if [ -n "$NPM_SECRET" ]; then
   echo "secret: $NPM_SECRET" >> config.yml
 fi
 if [ -n "$NPM_USER" -a -n "$NPM_PASSWORD" ]; then
-  echo "$NPM_USER:{PLAIN}$NPM_PASSWORD" >> ./htpasswd
+  echo "$NPM_USER:{PLAIN}$NPM_PASSWORD" > ./htpasswd
 fi
 
-exec ./node_modules/.bin/sinopia --config ./config.yml
+exec sinopia --config ./config.yml
