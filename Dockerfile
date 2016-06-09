@@ -36,7 +36,7 @@ RUN apk add --no-cache \
     && tar -xf "node-v$NODE_VERSION.tar.gz" \
     && cd "node-v$NODE_VERSION" \
     && ./configure --fully-static --with-intl=none \
-    && make -j2 V= \
+    && make -j4 V= \
     && make install \
     && cd .. \
     && rm -Rf "node-v$NODE_VERSION" \
