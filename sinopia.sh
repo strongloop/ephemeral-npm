@@ -16,6 +16,10 @@ uplinks:
     maxage: ${MAXAGE:-5m}
     timeout: ${TIMEOUT:-45s}
 packages:
+  '@*/*':
+    access: \$all
+    publish: \$authenticated
+    proxy: upstream
   '*':
     access: \$all
     publish: \$authenticated
