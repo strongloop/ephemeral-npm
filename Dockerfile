@@ -10,14 +10,15 @@ RUN adduser \
     --disabled-login \
     sinopia
 
+COPY verdaccio /opt/verdaccio
+RUN cd /opt/verdaccio \
+ && npm link --production --loglevel=warn --no-spin \
+ && rm -rf ~/.npm ~/.node-gyp
+
 USER sinopia
 ENV HOME=/var/lib/sinopia
 
 WORKDIR /var/lib/sinopia
-
-RUN npm install --loglevel=warn --no-spin sinopia && \
-    npm --no-spin --loglevel=warn cache clean && \
-    rm -rf ~/.node-gyp
 
 COPY sinopia.sh /var/lib/sinopia/run.sh
 
