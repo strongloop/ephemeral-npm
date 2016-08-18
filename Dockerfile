@@ -3,6 +3,7 @@ MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
 ENV NODE_VERSION 4.6.0
 
+COPY verdaccio /opt/verdaccio
 RUN apk add --no-cache \
         libstdc++ \
     && apk add --no-cache --virtual .build-deps \
@@ -42,7 +43,8 @@ RUN apk add --no-cache \
     && rm -Rf "node-v$NODE_VERSION" \
     && rm "node-v$NODE_VERSION.tar.gz" SHASUMS256.txt.asc SHASUMS256.txt \
     && npm install --no-spin -g npm \
-    && npm install --no-spin -g sinopia \
+    && cd /opt/verdaccio \
+    && npm link --production --no-spin \
     && npm uninstall --no-spin -g npm \
     && apk del .build-deps \
     && rm -rf ~/.npm* ~/.gnupg /tmp/npm* /usr/local/lib/node_modules/npm ~/.node* /var/cache/apk/* /usr/local/include/node \
