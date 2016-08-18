@@ -35,4 +35,17 @@ if [ -n "$NPM_USER" -a -n "$NPM_PASSWORD" ]; then
   echo "$NPM_USER:{PLAIN}$NPM_PASSWORD" >> ./htpasswd
 fi
 
-exec ./node_modules/.bin/sinopia --config ./config.yml
+# busybox: timeout [-t SECS] [-s SIG] PROG ARGS
+#   => only accepts seconds
+# coreutils: timeout DURATION COMMAND [ARG]...
+#   => DURATION can have s, m, h, or d suffix for units
+
+if [ -n "$MAXIMIMUM_LIFETIME" ]; then
+  if grep -q alpine /etc/os-release; then
+    exec timeout -t $MAXIMUM_LIFETIME /usr/local/bin/verdaccio --config ./config.yml
+  else
+    exec timeout --preserve-status --foreground $MAXIMUM_LIFETIME /usr/local/bin/verdaccio --config ./config.yml
+  fi
+else
+  exec /usr/local/bin/verdaccio --config ./config.yml
+fi
