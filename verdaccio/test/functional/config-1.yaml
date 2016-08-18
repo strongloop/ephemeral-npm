@@ -1,0 +1,90 @@
+storage: ./test-storage
+
+users:
+  test:
+    password: a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+
+users_file: ./test-storage/.htpasswd
+max_users: 1
+
+web:
+  enable: true
+
+uplinks:
+  express:
+    url: http://localhost:55550/
+    timeout: 100ms
+  server2:
+    url: http://localhost:55552/
+  baduplink:
+    url: http://localhost:55666/
+
+logs:
+  - {type: stdout, format: pretty, level: trace}
+
+packages:
+  '@test/*':
+    allow_access: all
+    allow_publish: all
+    proxy: server2
+
+  'testfwd*':
+    allow_access: all
+    allow_publish: all
+    proxy_access: server2
+    proxy_publish: server2
+
+  'testloop':
+    allow_access: all
+    allow_publish: all
+    proxy_access: server2
+    proxy_publish: server2
+
+  'testexp*':
+    allow_access: all
+    allow_publish: all
+    proxy_access: express
+
+  'test-nullstorage*':
+    allow_access: all
+    allow_publish: all
+    proxy_access: server2
+    storage: false
+
+  'baduplink':
+    allow_access: all
+    allow_publish: all
+    proxy_access: baduplink
+
+  'test-access-only':
+    allow_access: $all
+    allow_publish: nobody
+    storage: false
+
+  'test-publish-only':
+    allow_access: nobody
+    allow_publish: $all
+    storage: false
+
+  'test-only-test':
+    allow_access: test
+    allow_publish: test
+    storage: false
+
+  'test-only-auth':
+    allow_access: $authenticated
+    allow_publish: $authenticated
+    storage: false
+
+  '*':
+    allow_access: test undefined
+    allow_publish: test undefined
+
+  # this should not matter
+  testpkg:
+    allow_access: none
+
+listen: 55551
+
+# expose internal methods
+_debug: true
