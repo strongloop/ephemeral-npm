@@ -14,6 +14,7 @@ uplinks:
   upstream:
     url: $(npm config get registry)
     maxage: ${MAXAGE:-5m}
+    timeout: ${TIMEOUT:-45s}
 packages:
   '*':
     access: \$all
