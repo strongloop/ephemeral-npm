@@ -1,7 +1,7 @@
 FROM alpine:3.4
 MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
-ENV NODE_VERSION 4.4.5
+ENV NODE_VERSION 4.6.0
 
 RUN apk add --no-cache \
         libstdc++ \
