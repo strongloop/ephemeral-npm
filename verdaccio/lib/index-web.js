@@ -33,11 +33,12 @@ module.exports = function(config, auth, storage) {
 
   Search.configureStorage(storage)
 
+  Handlebars.registerPartial('entry', fs.readFileSync(require.resolve('./GUI/entry.hbs'), 'utf8'))
+
   if(config.web && config.web.template) {
     var template = Handlebars.compile(fs.readFileSync(config.web.template, 'utf8'));
   }
   else {
-    Handlebars.registerPartial('entry', fs.readFileSync(require.resolve('./GUI/entry.hbs'), 'utf8'))
     var template = Handlebars.compile(fs.readFileSync(require.resolve('./GUI/index.hbs'), 'utf8'))
   }
   app.get('/', function(req, res, next) {
@@ -51,7 +52,11 @@ module.exports = function(config, auth, storage) {
       async.filterSeries(packages, function(package, cb) {
         auth.allow_access(package.name, req.remote_user, function(err, allowed) {
           setImmediate(function () {
-            cb(err, allowed)
+            if (err) {
+              cb(null, false);
+            } else {
+              cb(err, allowed)
+            }
           })
         })
       }, function(err, packages) {
@@ -66,7 +71,7 @@ module.exports = function(config, auth, storage) {
         });
 
         next(template({
-          name:       config.web && config.web.title ? config.web.title : 'Sinopia',
+          name:       config.web && config.web.title ? config.web.title : 'Verdaccio',
           packages:   packages,
           baseUrl:    base,
           username:   req.remote_user.name,
@@ -153,4 +158,3 @@ module.exports = function(config, auth, storage) {
   })
   return app
 }
-

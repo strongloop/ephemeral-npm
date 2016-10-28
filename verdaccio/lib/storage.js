@@ -511,8 +511,8 @@ Storage._merge_versions = function(local, up, config) {
   // refresh dist-tags
   for (var i in up['dist-tags']) {
     if (local['dist-tags'][i] !== up['dist-tags'][i]) {
-      local['dist-tags'][i] = up['dist-tags'][i]
-      if (i === 'latest') {
+      local['dist-tags'][i] = Utils.semver_sort([up['dist-tags'][i], local['dist-tags'][i]]).reverse()[0]
+      if (i === 'latest' && local['dist-tags'][i] === up['dist-tags'][i]) {
         // if remote has more fresh package, we should borrow its readme
         local.readme = up.readme
       }
