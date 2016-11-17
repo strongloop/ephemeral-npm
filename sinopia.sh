@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ -n "$UPSTREAM_TOKEN" ]; then
+  export UPSTREAM_HEADERS="{ authorization: \"Bearer $UPSTREAM_TOKEN\" }"
+fi
+
 cat > ./config.yml <<EOYML
 storage: ./storage
 listen:
@@ -14,6 +18,7 @@ uplinks:
     url: ${npm_config_registry:-https://registry.npmjs.org/}
     maxage: ${MAXAGE:-5m}
     timeout: ${TIMEOUT:-45s}
+    headers: ${UPSTREAM_HEADERS}
 packages:
   '@*/*':
     access: \$all
