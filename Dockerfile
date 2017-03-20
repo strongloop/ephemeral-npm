@@ -1,5 +1,5 @@
 FROM node:4-slim
-MAINTAINER StrongLoop <enginerring@strongloop.com>
+MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
 # Run as unprivileged, even under docker
 RUN adduser \
