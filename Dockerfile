@@ -1,26 +1,11 @@
-FROM node:4-slim
+FROM openresty/openresty:alpine
 MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
-# Run as unprivileged, even under docker
-RUN adduser \
-    --group \
-    --system \
-    --home /var/lib/sinopia \
-    --disabled-password \
-    --disabled-login \
-    sinopia
+RUN apk --no-cache add dnsmasq
 
-USER sinopia
-ENV HOME=/var/lib/sinopia
+ADD entrypoint.sh nginx.conf /
 
-WORKDIR /var/lib/sinopia
-
-RUN npm install --loglevel=warn --no-spin sinopia && \
-    npm --no-spin --loglevel=warn cache clean && \
-    rm -rf ~/.node-gyp
-
-COPY sinopia.sh /var/lib/sinopia/run.sh
-
+# Not port 80 because ephemeral-npm stnadardized on couchdb's port already
 EXPOSE 4873
 
-ENTRYPOINT ["/var/lib/sinopia/run.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
