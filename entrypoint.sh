@@ -15,4 +15,7 @@ export npm_config_registry=${npm_config_registry:-https://registry.npmjs.org}
 # necessary because nginx requires a resolver when upstreams are dynamic
 dnsmasq --listen-address=127.0.0.1 --user=root
 
+# in case it hasn't been created as a tmpfs already
+mkdir -p /tmp/npm
+
 exec /usr/local/openresty/bin/openresty -c /nginx.conf $*
