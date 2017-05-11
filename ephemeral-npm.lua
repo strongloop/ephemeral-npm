@@ -1,17 +1,13 @@
 local cjson = require "cjson.safe"
+local utils = require "ephemeral-utils"
 
 local _M = {}
-
-local function parseDuration(str)
-    -- TODO: parse inputs like "1h", "2d", "10m" and return them as seconds
-    return 5 * 60
-end
 
 function _M.init()
     local npmConfig = ngx.shared.npmConfig
     _M.registry = os.getenv("npm_config_registry"):gsub("/+$", "")
     _M.hostPattern = _M.registry:gsub("%.", "%%."):gsub("%-", "%%-")
-    _M.MAXAGE = parseDuration(os.getenv("MAXAGE") or "5m")
+    _M.MAXAGE = utils.parseDuration(os.getenv("MAXAGE") or "5m")
     -- escape . and - which have special meaning in Lua patterns
     npmConfig:set('npm_config_registry', _M.registry)
     npmConfig:set('npm_upstream_pattern', _M.hostPattern)
