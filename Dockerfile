@@ -3,7 +3,7 @@ MAINTAINER Ryan Graham <rmg@ca.ibm.com>
 
 RUN apk --no-cache add dnsmasq
 
-ADD entrypoint.sh nginx.conf ephemeral-npm.lua /
+ADD entrypoint.sh nginx.conf ephemeral-npm.lua ephemeral-utils.lua /
 
 # Not port 80 because ephemeral-npm stnadardized on couchdb's port already
 EXPOSE 4873
