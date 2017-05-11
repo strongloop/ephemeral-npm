@@ -2,13 +2,20 @@ local cjson = require "cjson.safe"
 
 local _M = {}
 
+local function parseDuration(str)
+    -- TODO: parse inputs like "1h", "2d", "10m" and return them as seconds
+    return 5 * 60
+end
+
 function _M.init()
     local npmConfig = ngx.shared.npmConfig
-    local registry = os.getenv("npm_config_registry"):gsub("/+$", "")
-    local pattern = registry:gsub("%.", "%%."):gsub("%-", "%%-")
+    _M.registry = os.getenv("npm_config_registry"):gsub("/+$", "")
+    _M.hostPattern = _M.registry:gsub("%.", "%%."):gsub("%-", "%%-")
+    _M.MAXAGE = parseDuration(os.getenv("MAXAGE") or "5m")
     -- escape . and - which have special meaning in Lua patterns
-    npmConfig:set('npm_config_registry', registry)
-    npmConfig:set('npm_upstream_pattern', pattern)
+    npmConfig:set('npm_config_registry', _M.registry)
+    npmConfig:set('npm_upstream_pattern', _M.hostPattern)
+    npmConfig:set('MAXAGE', _M.MAXAGE)
 end
 
 function _M.getPackage()
@@ -17,6 +24,7 @@ function _M.getPackage()
     local body = meta:get(uri)
     -- yep, our own shared memory cache implementation :-/
     if body == nil then
+        ngx.var.ephemeralCacheStatus = 'MISS'
         local res = ngx.location.capture('/-@-' .. uri,
                                         { copy_all_vars = true })
         body = res.body
@@ -27,7 +35,9 @@ function _M.getPackage()
             -- next time
             return ngx.redirect(uri, ngx.HTTP_MOVED_TEMPORARILY)
         end
-        meta:set(uri, body)
+        meta:set(uri, body, _M.MAXAGE)
+    else
+        ngx.var.ephemeralCacheStatus = 'HIT'
     end
     ngx.header["Content-Length"] = #body
     ngx.print(body)
