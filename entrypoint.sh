@@ -16,7 +16,9 @@ export MAXAGE=${MAXAGE:-5m}
 # necessary because nginx requires a resolver when upstreams are dynamic
 dnsmasq --listen-address=127.0.0.1 --user=root
 
-# in case it hasn't been created as a tmpfs already
-mkdir -p /tmp/npm
+# in case /tmp/npm hasn't been created as a tmpfs already
+mkdir -p /tmp/npm/{store,temp,cache}
+# nginx runs as uid nobody and it needs write access
+chown -R nobody /tmp/npm
 
 exec /usr/local/openresty/bin/openresty -c /nginx.conf $*
