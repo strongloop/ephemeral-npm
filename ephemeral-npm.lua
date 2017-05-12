@@ -30,6 +30,7 @@ function _M.getPackage()
             -- somehow the metadata isn't valid JSON.. let's tell
             -- the client to try again and hope it works out better
             -- next time
+            ngx.sleep(2)
             return ngx.redirect(uri, ngx.HTTP_MOVED_TEMPORARILY)
         end
         meta:set(uri, body, _M.MAXAGE)
