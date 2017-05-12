@@ -39,6 +39,7 @@ function _M.getPackage()
     body = string.gsub(body, _M.hostPattern, base)
     ngx.header["Content-Length"] = #body
     ngx.print(body)
+    ngx.eof()
 end
 
 return _M
