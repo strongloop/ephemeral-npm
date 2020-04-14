@@ -10,6 +10,8 @@
 # [ ] NPM_USER
 # [ ] NPM_PASSWORD
 
+source preseed.sh
+
 export npm_config_registry=${npm_config_registry:-https://registry.npmjs.org}
 export MAXAGE=${MAXAGE:-5m}
 
@@ -17,7 +19,12 @@ export MAXAGE=${MAXAGE:-5m}
 dnsmasq --listen-address=127.0.0.1 --user=root
 
 # in case /tmp/npm hasn't been created as a tmpfs already
-mkdir -p /tmp/npm/{store,temp,cache}
+mkdir -p /tmp/npm/store
+mkdir -p /tmp/npm/temp
+mkdir -p /tmp/npm/cache
+
+maybePreseed
+
 # nginx runs as uid nobody and it needs write access
 chown -R nobody /tmp/npm
 
