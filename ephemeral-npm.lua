@@ -15,10 +15,45 @@ function _M.init()
     npmConfig:set('MAXAGE', _M.MAXAGE)
 end
 
+function _M.prefetchTaggedTarballs(premature, selfHost, pkg)
+    if premature then
+        return
+    end
+    local distTags = pkg['dist-tags'] or {}
+    local versions = pkg.versions or {}
+    local reqs = {}
+
+    for k, v in pairs(distTags) do
+        local tv = versions[v] or {}
+        if tv.dist then
+            local __scheme, __host, __port, path, query = unpack(http.parse_uri({}, tv.dist.tarball))
+            table.insert(reqs, {
+                path = path,
+                method = 'GET',
+                headers = {
+                    ["Host"] = selfHost,
+                },
+            })
+        end
+    end
+    if #reqs > 0 then
+        local httpc = http.new()
+        httpc:connect('127.0.0.1', 4873)
+        local responses, err = httpc:request_pipeline(reqs)
+        for i,r in ipairs(responses) do
+            if r.status then
+                r:read_body() -- to oblivion!
+            end
+        end
+        httpc:close()
+    end
+end
+
 function _M.prefetchRelatedPackages(premature, selfHost, pkg)
-    local httpc = http.new()
+    if premature then
+        return
+    end
     local meta = ngx.shared.npmMeta
-    httpc:connect('127.0.0.1', 4873)
     local distTags = pkg['dist-tags'] or {}
     local versions = pkg.versions or {}
     local latestVersion = distTags.latest
@@ -37,35 +72,32 @@ function _M.prefetchRelatedPackages(premature, selfHost, pkg)
             })
         end
     end
-    -- extract all the tarball URLs and fetch them to force them to be cached
-    for v,p in pairs(versions) do
-        local scheme, host, port, path, query = unpack(httpc:parse_uri(p.dist.tarball))
-        table.insert(reqs, {
-            path = path,
-            method = 'GET',
-        })
-    end
-    local responses, err = httpc:request_pipeline(reqs)
-    for i,r in ipairs(responses) do
-        if r.status then
-            r:read_body() -- to oblivion!
+    -- If we
+    if #reqs > 0 then
+        local httpc = http.new()
+        httpc:connect('127.0.0.1', 4873)
+        local responses, err = httpc:request_pipeline(reqs)
+        for i,r in ipairs(responses) do
+            if r.status then
+                r:read_body() -- to oblivion!
+            end
         end
+        httpc:close()
     end
-    httpc:close()
 end
 
 function _M.getPackage()
     local uri = ngx.var.uri
     local meta = ngx.shared.npmMeta
-    local body = meta:get(uri)
+    local cbody = meta:get(uri)
     local base = ngx.var.scheme .. '://' .. ngx.var.http_host
     -- yep, our own shared memory cache implementation :-/
-    if body == nil then
-        ngx.var.ephemeralCacheStatus = 'MISS'
+    if cbody == nil then
+        ngx.var.ephemeralCacheStatus = 'pkg-MISS'
         local res = ngx.location.capture('/-@-' .. uri,
                                         { copy_all_vars = true })
-        body = res.body
-        local pkgJSON = cjson.decode(body)
+        cbody = {body = res.body, etag = res.header['ETag']}
+        local pkgJSON = cjson.decode(cbody.body)
         if pkgJSON == nil then
             -- somehow the metadata isn't valid JSON.. let's tell
             -- the client to try again and hope it works out better
@@ -73,14 +105,25 @@ function _M.getPackage()
             ngx.sleep(2)
             return ngx.redirect(uri, ngx.HTTP_MOVED_TEMPORARILY)
         end
-        meta:set(uri, body, _M.MAXAGE)
-        -- We rewrite the URLs AFTER caching so that we can be accessed by
-        -- any hostname that is pointed at us.
-        body = string.gsub(body, _M.hostPattern, base)
-        ngx.timer.at(0.1, _M.prefetchRelatedPackages, ngx.var.http_host, pkgJSON)
+        meta:set(uri, cbody, _M.MAXAGE)
+        -- Pre-emptively cache some tarballs associated with the package.
+        -- We don't know what version they're actually going to be installing,
+        -- so we'll just take some educated guesses.
+        -- These files never change over time so they'll end up cached for a while.
+        ngx.timer.at(0, _M.prefetchTaggedTarballs, ngx.var.http_host, pkgJSON)
+        -- Pre-emptively fetch the package metadata for every dependency. These will
+        -- only stay cached for a little while but they'll potentially greatly reduce
+        -- latency for the client because there's a 99% chance they'll be asking for them
+        -- as soon as they recieve the current response and parse it.
+        ngx.timer.at(0, _M.prefetchRelatedPackages, ngx.var.http_host, pkgJSON)
     else
-        body = string.gsub(body, _M.hostPattern, base)
-        ngx.var.ephemeralCacheStatus = 'HIT'
+        ngx.var.ephemeralCacheStatus = 'pkg-HIT'
+    end
+    -- We rewrite the URLs AFTER caching so that we can be accessed by
+    -- any hostname that is pointed at us.
+    local body = string.gsub(cbody.body, _M.hostPattern, base)
+    if cbody.etag ~= nil then
+        ngx.header["ETag"] = cbody.etag
     end
     ngx.header["Content-Length"] = #body
     ngx.print(body)
